@@ -12,7 +12,6 @@
 
 ###When we are encoding chunks
 ~~~js
-
 var tusker = require('tusker');
 var taskManager = tusker.initialize();
 
@@ -27,7 +26,6 @@ taskManager.unlock('the-task', lockname);
 ###When we are closing the stream
 
 ~~~js
-
 var tusker = require('tusker');
 var taskManager = tusker.initialize();
 
@@ -37,8 +35,10 @@ taskManager.close('the-task', info);
 
 ###Receive notification after every chunk is encoded
 
+~~~js
 taskManager.watchForReleased(function(err, taskName, info, watchAgain) {
 
 	//merge chunks and notify back
 	watchAgain();
 });
+~~~
