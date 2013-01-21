@@ -1,0 +1,30 @@
+{
+  "name": "tusker",
+  "version": "0.0.1",
+  "description": "Redis based distributed task locking",
+  "keywords": [
+    "redis",
+    "task",
+    "manager",
+    "distributed",
+    "lock",
+    "locking"
+  ],
+  "author": "Arunoda Susiripala <arunoda.susiripala@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/arunoda/tusker.git"
+  },
+  "engines": {
+    "node": ">= 0.8.x"
+  },
+  "scripts": {
+    "test": "test/index.js"
+  },
+  "dependencies": {
+    "redis": "0.8.x"
+  },
+  "devDependencies": {
+    "mocha": "1.x.x"
+  }
+}
