@@ -36,6 +36,9 @@ taskManager.close('the-task', info);
 ###Receive notification after every chunk is encoded
 
 ~~~js
+var tusker = require('tusker');
+var taskManager = tusker.initialize();
+
 taskManager.watchForReleased(function(err, taskName, info, watchAgain) {
 
 	//merge chunks and notify back
