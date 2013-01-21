@@ -41,8 +41,8 @@ var taskManager = tusker.initialize();
 
 taskManager.watchForReleased(function(err, taskName, info, watchAgain) {
 
-	//merge chunks and notify back
-	watchAgain();
+    //merge chunks and notify back
+    watchAgain();
 });
 ~~~
 
@@ -56,7 +56,7 @@ var taskManager = tusker.initialize();
 
 //one minute timeout
 taskManager.timeout(60 * 1000, function(err) {
-	
+    
 });
 ~~~
 

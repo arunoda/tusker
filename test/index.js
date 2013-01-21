@@ -8,5 +8,5 @@ mocha.reporter('spec').ui('tdd');
 mocha.addFile('test/tusker.js');
  
 var runner = mocha.run(function(){
-  process.exit(0);
+	process.exit(0);
 });
