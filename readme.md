@@ -45,3 +45,19 @@ taskManager.watchForReleased(function(err, taskName, info, watchAgain) {
 	watchAgain();
 });
 ~~~
+
+###Invoking a timeout
+
+We cannot assure every lock we create will be unlocked. If the server died before `unlock`, we have a lock which will never be closed. So we need a timeout machanism.
+
+~~~js
+var tusker = require('tusker');
+var taskManager = tusker.initialize();
+
+//one minute timeout
+taskManager.timeout(60 * 1000, function(err) {
+	
+});
+~~~
+
+>NOTE: We've to invoke this method via a `cron` like tool

@@ -293,6 +293,90 @@ suite('Tusker', function() {
 
 		}));
 	});
+
+	suite('.timeout()', function() {
+
+		test("2 timeouted locks exists in a single lockHash and closed", _clean(function(done) {
+
+			var task = 'abc-test';
+			var timeoutMillis = 30 * 1000;
+			var millis = Date.now() - (timeoutMillis + 2000);
+			var info = {data: 242}
+
+			var t = new Tusker(redisClient);
+
+			redisClient.hmset(tusker._getLockHashName(task), 'lock1', millis, 'lock2', millis, function(err) {
+
+				assert.equal(err, undefined);
+				t.close(task, info, function(err) {
+
+					assert.equal(err, undefined);
+					t.timeout(timeoutMillis, veryfyTimeout);
+				});
+			});
+
+			function veryfyTimeout(err) {
+
+				if(err) throw err;
+				redisClient.hmget(tusker._getLockHashName(task), 'lock1', 'lock2', function(err, result) {
+
+					assert.equal(err, null);
+					assert.deepEqual(result, [null, null]);
+
+					redisClient.lpop(tusker._getReleasedListName(), afterReleasedFound);
+				});
+			}
+
+			function afterReleasedFound(err, result) {
+
+				result = JSON.parse(result);
+
+				assert.equal(err, null);
+				assert.equal(result.data, info.data);
+				done();
+			};
+		}));
+
+		test('2 timeout locks and 1 active lock exists in a single lockHash and closed', _clean(function(done) {
+
+			var task = 'abc-test';
+			var timeoutMillis = 30 * 1000;
+			var millis = Date.now() - (timeoutMillis + 2000);
+			var timestamp = Date.now();
+			var info = {data: 242}
+
+			var t = new Tusker(redisClient);
+
+			redisClient.hmset(tusker._getLockHashName(task), 'lock1', millis, 'lock2', millis, 'lock3', timestamp, function(err) {
+
+				assert.equal(err, undefined);
+				t.close(task, info, function(err) {
+
+					assert.equal(err, undefined);
+					t.timeout(timeoutMillis, veryfyTimeout);
+				});
+			});
+
+			function veryfyTimeout(err) {
+
+				if(err) throw err;
+				redisClient.hmget(tusker._getLockHashName(task), 'lock1', 'lock2', 'lock3', function(err, result) {
+
+					assert.equal(err, null);
+					assert.deepEqual(result, [null, null, timestamp]);
+
+					redisClient.lpop(tusker._getReleasedListName(), afterReleasedFound);
+				});
+			}
+
+			function afterReleasedFound(err, result) {
+				
+				assert.equal(err, null);
+				assert.equal(result, null);
+				done();
+			};
+		}));
+	});
 });
 
 function _clean(callback) {
