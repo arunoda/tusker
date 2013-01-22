@@ -215,7 +215,7 @@ suite('Tusker', function() {
 
     });
 
-    suite('.watchForReleased()', function() {
+    suite('.fetchReleased()', function() {
 
         test('watching after closed', _clean(function(done) {
 
@@ -224,7 +224,7 @@ suite('Tusker', function() {
             var info = { data: 100 };
 
             var t = new Tusker(redisClient, redisClient2);
-            t.watchForReleased(function(err, _task, _info) {
+            t.fetchReleased(function(err, _task, _info) {
 
                 assert.equal(err, null);
                 assert.equal(_info.data, info.data);
@@ -266,7 +266,7 @@ suite('Tusker', function() {
             };
 
             var t = tusker.initialize();
-            t.watchForReleased(function(err, _task, _info) {
+            t.fetchReleased(function(err, _task, _info) {
 
                 assert.equal(err, null);
                 assert.equal(_info.data, info.data);

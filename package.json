@@ -1,6 +1,6 @@
 {
   "name": "tusker",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Redis based distributed task locking",
   "keywords": [
     "redis",
@@ -10,6 +10,7 @@
     "lock",
     "locking"
   ],
+  "main": "./lib/tusker.js",
   "author": "Arunoda Susiripala <arunoda.susiripala@gmail.com>",
   "repository": {
     "type": "git",

@@ -39,7 +39,7 @@ taskManager.close('the-task', info);
 var tusker = require('tusker');
 var taskManager = tusker.initialize();
 
-taskManager.watchForReleased(function(err, taskName, info, watchAgain) {
+taskManager.fetchReleased(function(err, taskName, info, watchAgain) {
 
     //merge chunks and notify back
     watchAgain();
