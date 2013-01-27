@@ -168,8 +168,8 @@ suite('Tusker', function() {
                 assert.equal(err, undefined);
                 result = JSON.parse(result);
 
-                assert.equal(result.task, taskName);
-                assert.equal(result.data, info.data);
+                assert.equal(result.metadata.task, taskName);
+                assert.equal(result.payload.data, info.data);
 
                 done();
             }
@@ -196,8 +196,8 @@ suite('Tusker', function() {
                     assert.equal(err, undefined);
                     result = JSON.parse(result);
 
-                    assert.equal(result.task, taskName);
-                    assert.equal(result.data, info.data);
+                    assert.equal(result.metadata.task, taskName);
+                    assert.equal(result.payload.data, info.data);
 
                     redisClient.lpop(tusker._getReleasedListName(), veryifyNotReleased);
                 });
@@ -332,7 +332,7 @@ suite('Tusker', function() {
                 result = JSON.parse(result);
 
                 assert.equal(err, null);
-                assert.equal(result.data, info.data);
+                assert.equal(result.payload.data, info.data);
                 done();
             };
         }));
