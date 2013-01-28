@@ -7,7 +7,6 @@
 * And we also receive the end of the stream too
 * Now we need to notify back, after all the chunks are encoded
 
-
 ## Do it with Tusker
 
 ### When we are encoding chunks
@@ -91,3 +90,20 @@ taskManager.timeoutProcessing(function(err) {
 ~~~
 
 >NOTE: We've to invoke this method via a `cron` like tool
+
+
+### Statistics
+~~~js
+var tusker = require('tusker');
+var taskManager = tusker.initialize();
+
+//one minute timeout
+taskManager.stats(function(err, stats) {
+    
+
+});
+~~~
+
+Stats object is formatted as shown below:
+
+	{ completed: 101, released: 1, locked: 2, failed: 2, processing: 2 }
