@@ -254,17 +254,14 @@ suite('Tusker', function() {
                 redisClient.multi()
                     .hget(tusker._getClosedHashName(), task)
                     .hget(tusker._getProcessingHashName(), task)
-                    .lpop(tusker._getCompletedListName())
+                    .get(tusker._getCompletedKeyName())
                     .exec(function(err, results) {
 
                         assert.equal(err, null);
                         assert.equal(results[0], null);
                         assert.equal(results[1], null);
 
-                        var taskInfo = JSON.parse(results[2]);
-                        assert.equal(taskInfo.task, task);
-                        assert.ok(taskInfo.completed > 0 && taskInfo.completed <= Date.now());
-
+                        assert.equal(results[2], 1);
                         done();
                     });
             }
