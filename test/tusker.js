@@ -158,7 +158,8 @@ suite('Tusker', function() {
             function verifyClosedHash(err, result) {
 
                 assert.equal(err, undefined);
-                assert.equal(result, null);
+                result = JSON.parse(result);
+                assert.equal(result.payload.data, info.data);
 
                 redisClient.lpop(tusker._getReleasedListName(), veryifyReleased);
             }
@@ -555,6 +556,122 @@ suite('Tusker', function() {
             };
         }));
     });
+
+    suite('.timeoutProcessing()', function() {
+
+        test('remove 2 timeouted tasks with remaining attempts > 1', _clean(function(done) {
+
+            var t = new Tusker(redisClient, redisClient2);     
+            t.close('task1', {}, {timeout: 1});
+            t.close('task2', {}, {timeout: 1000 * 100});
+            t.close('task3', {}, {timeout: 1});
+            t.close('task4', {}, {timeout: 1000 * 100});
+
+            setTimeout(function() {
+
+                for(var lc=0; lc<4; lc++) {
+                    t.fetchReleased(function(err, task) {
+
+                        assert.equal(err, null);
+                        assert.ok(task);
+                    });
+                }
+
+                setTimeout(function() {
+
+                    t.timeoutProcessing(verifyTimeout);
+                }, 10)
+            }, 10);
+
+
+            function verifyTimeout(err) {
+
+                assert.equal(err, null);
+
+                redisClient.multi()
+                    .hgetall(tusker._getClosedHashName())
+                    .hgetall(tusker._getProcessingHashName())
+                    .lrange(tusker._getReleasedListName(), 0, -1)
+                    .exec(function(err, results) {
+
+                        assert.equal(err, null);
+
+                        assert.equal(JSON.parse(results[0]['task1']).metadata.attempts, 4)
+                        assert.equal(JSON.parse(results[0]['task2']).metadata.attempts, 5)
+                        assert.equal(JSON.parse(results[0]['task3']).metadata.attempts, 4)
+                        assert.equal(JSON.parse(results[0]['task4']).metadata.attempts, 5)
+
+                        assert.equal(results[1]['task1'], null)
+                        assert.equal(JSON.parse(results[1]['task2']).metadata.attempts, 5)
+                        assert.equal(results[1]['task3'], null)
+                        assert.equal(JSON.parse(results[1]['task4']).metadata.attempts, 5)
+
+                        assert.equal(JSON.parse(results[2][0]).metadata.task, 'task1');
+                        assert.equal(JSON.parse(results[2][1]).metadata.task, 'task3');
+
+                        done();
+                    });
+            }
+
+        }));
+
+        test('remove 2 timeouted tasks with no remaining attempts', _clean(function(done) {
+
+            var t = new Tusker(redisClient, redisClient2);     
+            t.close('task1', {}, {timeout: 1, attempts: 1});
+            t.close('task2', {}, {timeout: 1000 * 100});
+            t.close('task3', {}, {timeout: 1, attempts: 1});
+            t.close('task4', {}, {timeout: 1000 * 100});
+
+            setTimeout(function() {
+
+                for(var lc=0; lc<4; lc++) {
+                    t.fetchReleased(function(err, task) {
+
+                        assert.equal(err, null);
+                        assert.ok(task);
+                    });
+                }
+
+                setTimeout(function() {
+
+                    t.timeoutProcessing(verifyTimeout);
+                }, 10)
+            }, 10);
+
+
+            function verifyTimeout(err) {
+
+                assert.equal(err, null);
+
+                redisClient.multi()
+                    .hgetall(tusker._getClosedHashName())
+                    .hgetall(tusker._getProcessingHashName())
+                    .lrange(tusker._getReleasedListName(), 0, -1)
+                    .lrange(tusker._getFailedListName(), 0, -1)
+                    .exec(function(err, results) {
+
+                        assert.equal(err, null);
+
+                        assert.equal(Object.keys(results[0]).length, 2)
+                        assert.equal(JSON.parse(results[0]['task2']).metadata.attempts, 5)
+                        assert.equal(JSON.parse(results[0]['task4']).metadata.attempts, 5)
+
+                        assert.equal(Object.keys(results[1]).length, 2)
+                        assert.equal(JSON.parse(results[1]['task2']).metadata.attempts, 5)
+                        assert.equal(JSON.parse(results[1]['task4']).metadata.attempts, 5)
+
+                        assert.equal(results[2].length, 0);
+
+                        assert.equal(JSON.parse(results[3][0]).task, 'task1');
+                        assert.equal(JSON.parse(results[3][1]).task, 'task3');
+
+                        done();
+                    });
+            }
+
+        }));
+    })
 });
 
 function _clean(callback) {
