@@ -669,6 +669,48 @@ suite('Tusker', function() {
 
         }));
     })
+
+    suite('.stats', function() {
+
+        test('getting empty stats', _clean(function(done) {
+
+            var t = new Tusker(redisClient);
+            var expected = { completed: 0, released: 0, locked: 0, failed: 0, processing: 0 };
+
+            t.stats(function(err, results) {
+
+                assert.equal(err, null);
+                assert.deepEqual(results, expected);
+                done();
+            });
+        }));
+
+        test('getting stats with simulated data', _clean(function(done) {
+
+            var t = new Tusker(redisClient);
+            redisClient.multi()
+                .hmset(tusker._getClosedHashName(), 1, 10, 2, 20, 3, 30, 4, 40, 5, 50)
+                .hmset(tusker._getProcessingHashName(), 1, 10, 2, 20)
+                .rpush(tusker._getReleasedListName(), 10)
+                .rpush(tusker._getFailedListName(), 1, 2)
+                .set(tusker._getCompletedKeyName(), 101)
+                .exec(function(err, results) {
+
+                    assert.equal(err, null);
+                    assert.deepEqual(results, ["OK", "OK", 1, 2, "OK"]);
+                    t.stats(checkStats);
+                });
+
+            function checkStats(err, stats) {
+
+                assert.equal(err, null);
+                
+                var expected = { completed: 101, released: 1, locked: 2, failed: 2, processing: 2 };
+                assert.deepEqual(stats, expected);
+                done();
+            }   
+        }));
+    });
 });
 
 function _clean(callback) {
