@@ -33,7 +33,6 @@ for index, taskHash in ipairs(taskHashes) do
 	if closeInfo and noOfLocks == 0 then
 		--trigger released if the task already closed and no more locks
 		redis.call('del', taskHash);
-		redis.call('hdel', closedHash, taskName)
 		redis.call('rpush', releasedList, closeInfo)
 	end
 end

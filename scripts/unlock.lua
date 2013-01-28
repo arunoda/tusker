@@ -15,6 +15,5 @@ local closeInfo = redis.call('hget', closedHash, taskName)
 if noOfLocks == 0 and closeInfo ~= nil then
 	--trigger released if the task already closed and no more locks
 	redis.call('del', taskHash);
-	redis.call('hdel', closedHash, taskName)
 	redis.call('rpush', releasedList, closeInfo)
 end

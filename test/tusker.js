@@ -86,7 +86,7 @@ suite('Tusker', function() {
             function verifyCloseHashExist(err, result) {
 
                 assert.equal(err, undefined);
-                assert.equal(result, null);
+                assert.equal(result, info);
 
                 redisClient.lpop(tusker._getReleasedListName(), function(err, result) {
 
@@ -217,25 +217,203 @@ suite('Tusker', function() {
 
     suite('.fetchReleased()', function() {
 
-        test('watching after closed', _clean(function(done) {
+        test('watching after closed - completed successfully', _clean(function(done) {
 
             var task = 'the-task';
             var lockName = 'lock-here';
             var info = { data: 100 };
 
             var t = new Tusker(redisClient, redisClient2);
-            t.fetchReleased(function(err, _task, _info) {
+            var completed;
+            t.fetchReleased(function(err, _task, _info, _completed) {
 
                 assert.equal(err, null);
                 assert.equal(_info.data, info.data);
                 assert.equal(_task, task);
-                done();
+                
+                //verify processing
+                completed = _completed;
+                redisClient.hget(tusker._getProcessingHashName(), task, verifyProcessingHash);
             });
+
+            function verifyProcessingHash(err, result) {
+
+                assert.equal(err, undefined);
+                result = JSON.parse(result);
+
+                assert.equal(result.payload.data, info.data);
+                assert.ok(result.metadata.started > 0 && result.metadata.started <= Date.now());
+
+                completed(verifyCompleted);            
+            }
+
+            function verifyCompleted(err) {
+
+                assert.equal(err, undefined);
+                redisClient.multi()
+                    .hget(tusker._getClosedHashName(), task)
+                    .hget(tusker._getProcessingHashName(), task)
+                    .lpop(tusker._getCompletedListName())
+                    .exec(function(err, results) {
+
+                        assert.equal(err, null);
+                        assert.equal(results[0], null);
+                        assert.equal(results[1], null);
+
+                        var taskInfo = JSON.parse(results[2]);
+                        assert.equal(taskInfo.task, task);
+                        assert.ok(taskInfo.completed > 0 && taskInfo.completed <= Date.now());
+
+                        done();
+                    });
+            }
 
             t.lock(task, lockName, function(err) {
 
                 assert.equal(err, undefined);
                 t.close(task, info, unlockTask);
+            });
+
+            function unlockTask(err) {
+
+                assert.equal(err, undefined);
+                t.unlock(task, lockName, function(err) {
+
+                    assert.equal(err, undefined);
+                });
+            }
+
+        }));
+
+        test('watching after closed - completed with a failure - has attempts left', _clean(function(done) {
+
+            var task = 'the-task';
+            var lockName = 'lock-here';
+            var info = { data: 100 };
+
+            var t = new Tusker(redisClient, redisClient2);
+            var completed;
+            t.fetchReleased(function(err, _task, _info, _completed) {
+
+                assert.equal(err, null);
+                assert.equal(_info.data, info.data);
+                assert.equal(_task, task);
+                
+                //verify processing
+                completed = _completed;
+                redisClient.hget(tusker._getProcessingHashName(), task, verifyProcessingHash);
+            });
+
+            function verifyProcessingHash(err, result) {
+
+                assert.equal(err, undefined);
+                result = JSON.parse(result);
+
+                assert.equal(result.payload.data, info.data);
+                assert.ok(result.metadata.started > 0 && result.metadata.started <= Date.now());
+
+                completed({code: 'ERROR'}, verifyCompleted);            
+            }
+
+            function verifyCompleted(err) {
+
+
+                assert.equal(err, undefined);
+                redisClient.multi()
+                    .hget(tusker._getClosedHashName(), task)
+                    .hget(tusker._getProcessingHashName(), task)
+                    .lpop(tusker._getReleasedListName())
+                    .exec(function(err, results) {
+
+                        assert.equal(err, null);
+
+                        results[0] = JSON.parse(results[0]);
+                        assert.equal(results[0].payload.data, info.data);
+                        assert.equal(results[0].metadata.attempts, 4);
+                        assert.equal(results[1], null);
+
+                        results[2] = JSON.parse(results[2]);
+                        assert.equal(results[2].payload.data, info.data);
+                        assert.equal(results[2].metadata.attempts, 4);
+
+                        done();
+                    });
+            }
+
+            t.lock(task, lockName, function(err) {
+
+                assert.equal(err, undefined);
+                t.close(task, info, {attempts: 5}, unlockTask);
+            });
+
+            function unlockTask(err) {
+
+                assert.equal(err, undefined);
+                t.unlock(task, lockName, function(err) {
+
+                    assert.equal(err, undefined);
+                });
+            }
+
+        }));
+
+        test('watching after closed - completed with a failure - has no attempts left', _clean(function(done) {
+
+            var task = 'the-task';
+            var lockName = 'lock-here';
+            var info = { data: 100 };
+
+            var t = new Tusker(redisClient, redisClient2);
+            var completed;
+            t.fetchReleased(function(err, _task, _info, _completed) {
+
+                assert.equal(err, null);
+                assert.equal(_info.data, info.data);
+                assert.equal(_task, task);
+                
+                //verify processing
+                completed = _completed;
+                redisClient.hget(tusker._getProcessingHashName(), task, verifyProcessingHash);
+            });
+
+            function verifyProcessingHash(err, result) {
+
+                assert.equal(err, undefined);
+                result = JSON.parse(result);
+
+                assert.equal(result.payload.data, info.data);
+                assert.ok(result.metadata.started > 0 && result.metadata.started <= Date.now());
+
+                completed({code: 'ERROR'}, verifyCompleted);            
+            }
+
+            function verifyCompleted(err) {
+
+
+                assert.equal(err, undefined);
+                redisClient.multi()
+                    .hget(tusker._getClosedHashName(), task)
+                    .hget(tusker._getProcessingHashName(), task)
+                    .lpop(tusker._getFailedListName())
+                    .exec(function(err, results) {
+
+                        assert.equal(err, null);
+
+                        assert.equal(results[0], null);
+                        assert.equal(results[1], null);
+
+                        results[2] = JSON.parse(results[2]);
+                        assert.equal(results[2].task, task);
+                        assert.ok(results[2].failed > 0 && results[2].failed <= Date.now());
+
+                        done();
+                    });
+            }
+
+            t.lock(task, lockName, function(err) {
+
+                assert.equal(err, undefined);
+                t.close(task, info, {attempts: 1}, unlockTask);
             });
 
             function unlockTask(err) {
