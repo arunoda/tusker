@@ -294,7 +294,7 @@ suite('Tusker', function() {
         }));
     });
 
-    suite('.timeout()', function() {
+    suite('.timeoutLocks()', function() {
 
         test("2 timeouted locks exists in a single lockHash and closed", _clean(function(done) {
 
@@ -311,7 +311,7 @@ suite('Tusker', function() {
                 t.close(task, info, function(err) {
 
                     assert.equal(err, undefined);
-                    t.timeout(timeoutMillis, veryfyTimeout);
+                    t.timeoutLocks(timeoutMillis, veryfyTimeout);
                 });
             });
 
@@ -353,7 +353,7 @@ suite('Tusker', function() {
                 t.close(task, info, function(err) {
 
                     assert.equal(err, undefined);
-                    t.timeout(timeoutMillis, veryfyTimeout);
+                    t.timeoutLocks(timeoutMillis, veryfyTimeout);
                 });
             });
 
