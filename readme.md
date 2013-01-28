@@ -1,6 +1,6 @@
-#Tusker - Redis Based Distributed Task Locking
+# Tusker - Redis Based Distributed Task Locking
 
-##Why? Let's look at following scenario
+## Why? Let's look at following scenario
 
 * We receive chunks of ogg's to encode into different servers
 * All of those are related to single stream
@@ -8,9 +8,9 @@
 * Now we need to notify back, after all the chunks are encoded
 
 
-##Do it with Tusker
+## Do it with Tusker
 
-###When we are encoding chunks
+### When we are encoding chunks
 ~~~js
 var tusker = require('tusker');
 var taskManager = tusker.initialize();
@@ -23,39 +23,69 @@ taskManager.lock('the-task', lockname);
 taskManager.unlock('the-task', lockname);
 ~~~
 
-###When we are closing the stream
+### When we are closing the stream
 
 ~~~js
 var tusker = require('tusker');
 var taskManager = tusker.initialize();
 
 var info = { some_data: 10 };
-taskManager.close('the-task', info);
+var options = {}
+taskManager.close('the-task', info, options);
 ~~~
 
-###Receive notification after every chunk is encoded
+#### Available options
+
+##### attempts
+* no of attempts before before mark the task as failed
+* new attempt can be occurred if task completed with an error or timeout occurred
+
+##### timeout
+* timeout for the task completion in millis
+* if this value exceeded new attempt will be occurred
+
+
+### Receive notification after every chunk is encoded
 
 ~~~js
 var tusker = require('tusker');
 var taskManager = tusker.initialize();
 
-taskManager.fetchReleased(function(err, taskName, info, watchAgain) {
+taskManager.fetchReleased(function(err, taskName, info, completed) {
 
     //merge chunks and notify back
-    watchAgain();
+    var err = null; //if there is an error assign error object 
+    completed(err);
 });
 ~~~
 
-###Invoking a timeout
+### Invoking a timeout for locks
 
 We cannot assure every lock we create will be unlocked. If the server died before `unlock`, we have a lock which will never be closed. So we need a timeout machanism.
+
+~~~js
+var tusker = require('tusker
+var taskManager = tusker.initialize();
+
+//one minute timeout
+taskManager.timeoutLocks(60 * 1000, function(err) {
+    
+});
+~~~
+
+>NOTE: We've to invoke this method via a `cron` like tool
+
+### Invoking a timeout for task processing
+
+* We need to timeout long running tasks, and allow another attempt to process it
+* default timeout is 30 seconds otherwise if it is not defined when task closing via `.close()` 
 
 ~~~js
 var tusker = require('tusker');
 var taskManager = tusker.initialize();
 
 //one minute timeout
-taskManager.timeout(60 * 1000, function(err) {
+taskManager.timeoutProcessing(function(err) {
     
 });
 ~~~
