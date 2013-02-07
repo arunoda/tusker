@@ -1,6 +1,6 @@
 {
   "name": "tusker",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Redis based distributed task locking",
   "keywords": [
     "redis",
@@ -23,7 +23,8 @@
     "test": "test/index.js"
   },
   "dependencies": {
-    "redis": "0.8.x"
+    "redis": "0.8.x",
+    "debug": "0.7.x"
   },
   "devDependencies": {
     "mocha": "1.x.x"
