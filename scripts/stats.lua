@@ -10,7 +10,7 @@ local sizeClosed = redis.call('hlen', closedHash)
 local sizeProcessing = redis.call('hlen', processingHash)
 local sizeReleased = redis.call('llen', releasedList)
 local sizeFailed = redis.call('llen', failedList)
-local sizeCompleted = redis.call('get', completedKey) or 0
+local sizeCompleted = tonumber(redis.call('get', completedKey)) or 0
 
 local result = {
 	failed=sizeFailed,

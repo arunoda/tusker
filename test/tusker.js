@@ -6,6 +6,8 @@ var redis       = require('redis');
 var redisClient = redis.createClient();
 var redisClient2 = redis.createClient();
 
+redisClient.setMaxListeners(50);
+
 suite('Tusker', function() {
 
     suite('.lock()', function() {
@@ -603,8 +605,8 @@ suite('Tusker', function() {
                         assert.equal(results[1]['task3'], null)
                         assert.equal(JSON.parse(results[1]['task4']).metadata.attempts, 5)
 
-                        assert.equal(JSON.parse(results[2][0]).metadata.task, 'task1');
-                        assert.equal(JSON.parse(results[2][1]).metadata.task, 'task3');
+                        assert.ok(['task1', 'task3'].indexOf(JSON.parse(results[2][0]).metadata.task) >= 0);
+                        assert.ok(['task1', 'task3'].indexOf(JSON.parse(results[2][1]).metadata.task) >= 0);
 
                         done();
                     });
@@ -660,8 +662,8 @@ suite('Tusker', function() {
 
                         assert.equal(results[2].length, 0);
 
-                        assert.equal(JSON.parse(results[3][0]).task, 'task1');
-                        assert.equal(JSON.parse(results[3][1]).task, 'task3');
+                        assert.ok(['task1', 'task3'].indexOf(JSON.parse(results[3][0]).task) >= 0);
+                        assert.ok(['task1', 'task3'].indexOf(JSON.parse(results[3][1]).task) >= 0);
 
                         done();
                     });
