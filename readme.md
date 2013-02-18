@@ -3,12 +3,11 @@
 
 ## Why? Let's look at following scenario
 
-* We receive chunks of ogg's to encode into different servers
-* All of those are related to single stream
-* And we also receive the end of the stream too
-* Now we need to notify back, after all the chunks are encoded
+* We are transcoding ogg streams into mp3 realtime
+* And oggs are coming as chunks (<15 secs)
+* We have deployed several servers and routing is random and stateless
 
-## Do it with Tusker
+## Lets Cordinate this with Tusker
 
 ### When we are encoding chunks
 ~~~js
@@ -23,7 +22,7 @@ taskManager.lock('the-task', lockname);
 taskManager.unlock('the-task', lockname);
 ~~~
 
-### When we are closing the stream
+### At the end of the ogg stream
 
 ~~~js
 var tusker = require('tusker');
@@ -45,7 +44,7 @@ taskManager.close('the-task', info, options);
 * if this value exceeded new attempt will be occurred
 
 
-### Receive notification after every chunk is encoded
+### Receive notification after the all related chunks for a stream has encoded
 
 ~~~js
 var tusker = require('tusker');
