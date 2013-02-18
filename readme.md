@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/arunoda/tusker.png?branch=master)](https://travis-ci.org/arunoda/tusker)
 # Tusker - Redis Based Distributed Task Locking
 
 ## Why? Let's look at following scenario
