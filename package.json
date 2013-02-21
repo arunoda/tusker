@@ -1,6 +1,6 @@
 {
   "name": "tusker",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Redis based distributed task locking",
   "keywords": [
     "redis",
