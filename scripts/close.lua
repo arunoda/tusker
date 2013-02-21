@@ -2,7 +2,6 @@
 local taskHash  		= KEYS[1]
 local closedHash 		= KEYS[2]
 local releasedList 		= KEYS[3]
-local processingHash 	= KEYS[4]
 
 --parameters
 local taskName 		= ARGV[1]
@@ -12,8 +11,8 @@ local noOfLocks	= redis.call('hlen', taskHash);
 
 if noOfLocks == 0 then
 
-	local isProcessing = redis.call('hget', processingHash, taskName)
-	if not(isProcessing)  then
+	local isClosed = redis.call('hget', closedHash, taskName)
+	if not(isClosed)  then
 		--release the task
 		redis.call('del', taskHash);
 		redis.call('rpush', releasedList, closeInfo)

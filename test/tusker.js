@@ -222,7 +222,8 @@ suite('Tusker', function() {
             var info = { data: 10 };
             var t = new Tusker(redisClient);
 
-            redisClient.hset(tusker._getProcessingHashName(), taskName, 'dummyData', doCloseTask);
+            var dummyData = "ssfscsfd";
+            redisClient.hset(tusker._getClosedHashName(), taskName, dummyData, doCloseTask);
 
             function doCloseTask(err) {
 
@@ -238,7 +239,7 @@ suite('Tusker', function() {
             function verifyClosedHash(err, result) {
 
                 assert.equal(err, null);
-                assert.equal(result, null);
+                assert.equal(result, dummyData);
 
                 redisClient.lpop(tusker._getReleasedListName(), veryifyReleased);
             }
