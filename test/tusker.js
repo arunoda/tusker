@@ -216,6 +216,42 @@ suite('Tusker', function() {
 
         }));
 
+        test('no locks exists, but processing', _clean(function(done) {
+
+            var taskName = 'the-task';
+            var info = { data: 10 };
+            var t = new Tusker(redisClient);
+
+            redisClient.hset(tusker._getProcessingHashName(), taskName, 'dummyData', doCloseTask);
+
+            function doCloseTask(err) {
+
+                assert.equal(err, undefined);
+                t.close(taskName, info, function(err) {
+
+                    assert.equal(err, undefined);
+                    redisClient.hget(tusker._getClosedHashName(), taskName, verifyClosedHash);
+                });
+            }
+
+            
+            function verifyClosedHash(err, result) {
+
+                assert.equal(err, null);
+                assert.equal(result, null);
+
+                redisClient.lpop(tusker._getReleasedListName(), veryifyReleased);
+            }
+
+            function veryifyReleased(err, result) {
+
+                assert.equal(err, null);
+                assert.equal(result, null);
+
+                done();
+            }
+        }));
+
     });
 
     suite('.fetchReleased()', function() {
